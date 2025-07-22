@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 Class Attendance Manager</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 25px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .section:hover {
+            border-color: #667eea;
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.1);
+        }
+
+        .section h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        .btn-info { background: #17a2b8; color: white; }
+
+        .file-upload {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-upload-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: block;
+            text-align: center;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(40, 167, 69, 0.3);
+        }
+
+        .student-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .student-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .student-item:hover {
+            background: #f8f9fa;
+        }
+
+        .student-item:last-child {
+            border-bottom: none;
+        }
+
+        .checkbox-container {
+            margin-right: 15px;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            transform: scale(1.2);
+        }
+
+        .student-info {
+            flex: 1;
+        }
+
+        .student-name {
+            font-weight: 600;
+            color: #495057;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .student-details {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .output {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            min-height: 200px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .summary-card h4 {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            text-align: center;
+        }
+
+        .stat {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: #28a745;
+            color: white;
+            border-radius: 8px;
+            font-weight: 600;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 5px;
+                border-radius: 12px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .tab-content {
+                padding: 15px;
+            }
+
+            .section {
+                padding: 15px;
+            }
+
+            .controls {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-stats {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Class Attendance Manager</h1>
+            <p>Manage your class attendance with ease</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('students')">👥 Students</button>
+            <button class="tab" onclick="showTab('attendance')">📋 Attendance</button>
+        </div>
+
+        <!-- Students Tab -->
+        <div id="students-tab" class="tab-content active">
+            <div class="section">
+                <h3>📁 Import from Excel</h3>
+                <div class="file-upload">
+                    <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" onchange="importExcel()">
+                    <label for="excel-file" class="file-upload-btn">
+                        📤 Choose Excel File (.xlsx, .xls, .csv)
+                    </label>
+                </div>
+                <div style="margin-top: 15px;">
+                    <p style="color: #6c757d; font-size: 14px;">
+                        📝 Excel should have columns: <strong>Name</strong>, <strong>Enrollment</strong>, <strong>Roll</strong><br>
+                        The first row should contain these headers.
+                    </p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>➕ Add Student Manually</h3>
+                <div class="form-row">
+                    <input type="text" id="student-name" placeholder="Student Name" required>
+                    <input type="text" id="enrollment-no" placeholder="Enrollment Number" required>
+                    <input type="text" id="roll-no" placeholder="Roll Number" required>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-primary" onclick="addStudent()">➕ Add Student</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>👥 Students List (<span id="student-count">0</span> students)</h3>
+                <div style="margin-bottom: 15px;">
+                    <button class="btn btn-danger" onclick="clearAllStudents()">🗑️ Clear All</button>
+                </div>
+                <div id="students-list" class="student-list">
+                    <div style="text-align: center; padding: 40px; color: #6c757d;">
+                        No students added yet. Import from Excel or add manually.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Tab -->
+        <div id="attendance-tab" class="tab-content">
+            <div id="attendance-summary" class="summary-card" style="display: none;">
+                <h4>📊 Class Summary</h4>
+                <div class="summary-stats">
+                    <div class="stat">
+                        <div class="stat-number" id="total-students">0</div>
+                        <div class="stat-label">Total Students</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number" id="present-count">0</div>
+                        <div class="stat-label">Present</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number" id="absent-count">0</div>
+                        <div class="stat-label">Absent</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📋 Take Attendance</h3>
+                <div class="controls">
+                    <button class="btn btn-success" onclick="selectAll()">✅ Select All</button>
+                    <button class="btn btn-warning" onclick="clearAll()">❌ Clear All</button>
+                    <button class="btn btn-info" onclick="generateReport()">📊 Generate Report</button>
+                </div>
+                <div id="attendance-list" class="student-list">
+                    <div style="text-align: center; padding: 40px; color: #6c757d;">
+                        Please add students first in the Students tab.
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📤 Attendance Output</h3>
+                <button class="btn btn-primary" onclick="copyRollNumbers()" style="margin-bottom: 15px;">
+                    📋 Copy Roll Numbers for Teacher
+                </button>
+                <div id="output" class="output">
+                    Click "Generate Report" to see attendance results here.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        let students = [];
+        let currentDate = new Date().toLocaleDateString();
+
+        // Load data from localStorage
+        function loadData() {
+            const saved = localStorage.getItem('classStudents');
+            if (saved) {
+                students = JSON.parse(saved);
+                updateStudentsList();
+                updateAttendanceList();
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('classStudents', JSON.stringify(students));
+        }
+
+        // Show notification
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${isError ? 'error' : ''} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Tab switching
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabName === 'attendance') {
+                updateAttendanceList();
+                updateSummary();
+            }
+        }
+
+        // Import from Excel
+        function importExcel() {
+            const file = document.getElementById('excel-file').files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let data;
+                    
+                    if (file.name.toLowerCase().endsWith('.csv')) {
+                        // Handle CSV
+                        const text = e.target.result;
+                        const lines = text.split('\n');
+                        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+                        
+                        data = lines.slice(1).filter(line => line.trim()).map(line => {
+                            const values = line.split(',').map(v => v.trim());
+                            const row = {};
+                            headers.forEach((header, index) => {
+                                row[header] = values[index] || '';
+                            });
+                            return row;
+                        });
+                    } else {
+                        // Handle Excel
+                        const workbook = XLSX.read(e.target.result, {type: 'binary'});
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        data = XLSX.utils.sheet_to_json(firstSheet);
+                    }
+
+                    // Process the data
+                    let importedCount = 0;
+                    let duplicateCount = 0;
+
+                    data.forEach(row => {
+                        // Try different possible column names
+                        const name = row.Name || row.name || row.StudentName || row['Student Name'] || 
+                                   row['Full Name'] || row.fullname || '';
+                        const enrollment = row.Enrollment || row.enrollment || row.EnrollmentNo || 
+                                         row['Enrollment No'] || row.enrollmentno || row.EN || row.en || '';
+                        const roll = row.Roll || row.roll || row.RollNo || row['Roll No'] || 
+                                   row.rollno || row.RollNumber || row['Roll Number'] || '';
+
+                        if (name && enrollment && roll) {
+                            // Check for duplicates
+                            const exists = students.find(s => 
+                                s.enrollment === enrollment.toString() || 
+                                s.roll === roll.toString()
+                            );
+
+                            if (!exists) {
+                                students.push({
+                                    name: name.toString().trim(),
+                                    enrollment: enrollment.toString().trim(),
+                                    roll: roll.toString().trim()
+                                });
+                                importedCount++;
+                            } else {
+                                duplicateCount++;
+                            }
+                        }
+                    });
+
+                    saveData();
+                    updateStudentsList();
+                    updateAttendanceList();
+
+                    let message = `✅ Imported ${importedCount} students successfully!`;
+                    if (duplicateCount > 0) {
+                        message += ` (${duplicateCount} duplicates skipped)`;
+                    }
+                    showNotification(message);
+
+                } catch (error) {
+                    console.error('Import error:', error);
+                    showNotification('❌ Error importing file. Please check the format.', true);
+                }
+            };
+
+            if (file.name.toLowerCase().endsWith('.csv')) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsBinaryString(file);
+            }
+        }
+
+        // Add student manually
+        function addStudent() {
+            const name = document.getElementById('student-name').value.trim();
+            const enrollment = document.getElementById('enrollment-no').value.trim();
+            const roll = document.getElementById('roll-no').value.trim();
+
+            if (!name || !enrollment || !roll) {
+                showNotification('❌ Please fill all fields!', true);
+                return;
+            }
+
+            // Check for duplicates
+            const exists = students.find(s => 
+                s.enrollment === enrollment || s.roll === roll
+            );
+
+            if (exists) {
+                showNotification('❌ Student with same enrollment or roll number already exists!', true);
+                return;
+            }
+
+            students.push({ name, enrollment, roll });
+            saveData();
+            updateStudentsList();
+            updateAttendanceList();
+
+            // Clear inputs
+            document.getElementById('student-name').value = '';
+            document.getElementById('enrollment-no').value = '';
+            document.getElementById('roll-no').value = '';
+
+            showNotification(`✅ Student ${name} added successfully!`);
+        }
+
+        // Update students list
+        function updateStudentsList() {
+            const container = document.getElementById('students-list');
+            document.getElementById('student-count').textContent = students.length;
+
+            if (students.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #6c757d;">
+                        No students added yet. Import from Excel or add manually.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = students.map((student, index) => `
+                <div class="student-item">
+                    <div class="student-info">
+                        <div class="student-name">${student.name}</div>
+                        <div class="student-details">Roll: ${student.roll} | Enrollment: ${student.enrollment}</div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteStudent(${index})">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        // Update attendance list
+        function updateAttendanceList() {
+            const container = document.getElementById('attendance-list');
+            
+            if (students.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #6c757d;">
+                        Please add students first in the Students tab.
+                    </div>
+                `;
+                document.getElementById('attendance-summary').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('attendance-summary').style.display = 'block';
+            
+            container.innerHTML = students.map((student, index) => `
+                <div class="student-item">
+                    <div class="checkbox-container">
+                        <input type="checkbox" class="checkbox" id="check-${index}" onchange="updateSummary()">
+                    </div>
+                    <div class="student-info">
+                        <div class="student-name">${student.name}</div>
+                        <div class="student-details">Roll: ${student.roll} | Enrollment: ${student.enrollment}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            updateSummary();
+        }
+
+        // Update summary
+        function updateSummary() {
+            const total = students.length;
+            const present = document.querySelectorAll('input[type="checkbox"]:checked').length;
+            const absent = total - present;
+
+            document.getElementById('total-students').textContent = total;
+            document.getElementById('present-count').textContent = present;
+            document.getElementById('absent-count').textContent = absent;
+        }
+
+        // Delete student
+        function deleteStudent(index) {
+            if (confirm(`Delete ${students[index].name}?`)) {
+                students.splice(index, 1);
+                saveData();
+                updateStudentsList();
+                updateAttendanceList();
+                showNotification('✅ Student deleted successfully!');
+            }
+        }
+
+        // Clear all students
+        function clearAllStudents() {
+            if (confirm('Are you sure you want to delete all students?')) {
+                students = [];
+                saveData();
+                updateStudentsList();
+                updateAttendanceList();
+                showNotification('✅ All students cleared!');
+            }
+        }
+
+        // Select all checkboxes
+        function selectAll() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            updateSummary();
+        }
+
+        // Clear all checkboxes
+        function clearAll() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateSummary();
+        }
+
+        // Generate attendance report
+        function generateReport() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const presentStudents = [];
+            const presentRolls = [];
+            const absentStudents = [];
+
+            students.forEach((student, index) => {
+                if (checkboxes[index] && checkboxes[index].checked) {
+                    presentStudents.push(student);
+                    presentRolls.push(student.roll);
+                } else {
+                    absentStudents.push(student);
+                }
+            });
+
+            // Sort roll numbers numerically
+            presentRolls.sort((a, b) => parseInt(a) - parseInt(b));
+
+            const currentTime = new Date().toLocaleString();
+            
+            let report = `📅 ATTENDANCE REPORT\n`;
+            report += `Date: ${currentTime}\n`;
+            report += `${'='.repeat(50)}\n\n`;
+            
+            report += `📊 SUMMARY:\n`;
+            report += `Total Students: ${students.length}\n`;
+            report += `Present: ${presentStudents.length}\n`;
+            report += `Absent: ${absentStudents.length}\n`;
+            report += `Attendance Rate: ${((presentStudents.length / students.length) * 100).toFixed(1)}%\n\n`;
+            
+            report += `✅ PRESENT STUDENTS ROLL NUMBERS (Copy this for teacher):\n`;
+            report += `${presentRolls.join(', ')}\n\n`;
+            
+            report += `✅ PRESENT STUDENTS DETAILS:\n`;
+            presentStudents.forEach(student => {
+                report += `• ${student.name} (Roll: ${student.roll}, EN: ${student.enrollment})\n`;
+            });
+            
+            if (absentStudents.length > 0) {
+                report += `\n❌ ABSENT STUDENTS:\n`;
+                absentStudents.forEach(student => {
+                    report += `• ${student.name} (Roll: ${student.roll}, EN: ${student.enrollment})\n`;
+                });
+            }
+
+            document.getElementById('output').textContent = report;
+            showNotification('📊 Attendance report generated!');
+        }
+
+        // Copy roll numbers to clipboard
+        function copyRollNumbers() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const presentRolls = [];
+
+            students.forEach((student, index) => {
+                if (checkboxes[index] && checkboxes[index].checked) {
+                    presentRolls.push(student.roll);
+                }
+            });
+
+            if (presentRolls.length === 0) {
+                showNotification('❌ No students marked as present!', true);
+                return;
+            }
+
+            // Sort roll numbers numerically
+            presentRolls.sort((a, b) => parseInt(a) - parseInt(b));
+            const rollList = presentRolls.join(', ');
+
+            // Copy to clipboard
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(rollList).then(() => {
+                    showNotification(`📋 Copied to clipboard: ${rollList}`);
+                }).catch(() => {
+                    fallbackCopy(rollList);
+                });
+            } else {
+                fallbackCopy(rollList);
+            }
+        }
+
+        // Fallback copy method
+        function fallbackCopy(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showNotification(`📋 Copied to clipboard: ${text}`);
+            } catch (err) {
+                showNotification('❌ Could not copy to clipboard', true);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+        });
+    </script>
+</body>
+</html>
