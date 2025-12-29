@@ -5,367 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📚 Class Attendance Manager</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 10px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 25px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .tabs {
-            display: flex;
-            background: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 15px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            color: #6c757d;
-            transition: all 0.3s ease;
-        }
-
-        .tab.active {
-            background: white;
-            color: #667eea;
-            border-bottom: 3px solid #667eea;
-        }
-
-        .tab:hover {
-            background: #e9ecef;
-        }
-
-        .tab-content {
-            display: none;
-            padding: 25px;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .section {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 2px solid #e9ecef;
-            transition: all 0.3s ease;
-        }
-
-        .section:hover {
-            border-color: #667eea;
-            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.1);
-        }
-
-        .section h3 {
-            color: #495057;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        @media (max-width: 768px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #dee2e6;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-        }
-
-        .btn-primary { background: #667eea; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn-warning { background: #ffc107; color: #212529; }
-        .btn-info { background: #17a2b8; color: white; }
-
-        .file-upload {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-            width: 100%;
-        }
-
-        .file-upload input[type=file] {
-            position: absolute;
-            left: -9999px;
-        }
-
-        .file-upload-btn {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            display: block;
-            text-align: center;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .file-upload-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(40, 167, 69, 0.3);
-        }
-
-        .student-list {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 2px solid #dee2e6;
-            border-radius: 8px;
-            background: white;
-        }
-
-        .student-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            border-bottom: 1px solid #dee2e6;
-            transition: all 0.3s ease;
-        }
-
-        .student-item:hover {
-            background: #f8f9fa;
-        }
-
-        .student-item:last-child {
-            border-bottom: none;
-        }
-
-        .checkbox-container {
-            margin-right: 15px;
-        }
-
-        .checkbox {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            transform: scale(1.2);
-        }
-
-        .student-info {
-            flex: 1;
-        }
-
-        .student-name {
-            font-weight: 600;
-            color: #495057;
-            font-size: 16px;
-            margin-bottom: 5px;
-        }
-
-        .student-details {
-            color: #6c757d;
-            font-size: 14px;
-        }
-
-        .delete-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 35px;
-            height: 35px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .delete-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
-        }
-
-        .controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .output {
-            background: #f8f9fa;
-            border: 2px solid #dee2e6;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-            min-height: 200px;
-            white-space: pre-wrap;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .summary-card {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .summary-card h4 {
-            margin-bottom: 10px;
-            font-size: 18px;
-        }
-
-        .summary-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            text-align: center;
-        }
-
-        .stat {
-            background: rgba(255,255,255,0.2);
-            padding: 10px;
-            border-radius: 8px;
-            backdrop-filter: blur(10px);
-        }
-
-        .stat-number {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            opacity: 0.9;
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            background: #28a745;
-            color: white;
-            border-radius: 8px;
-            font-weight: 600;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-
-        .notification.show {
-            transform: translateX(0);
-        }
-
-        .notification.error {
-            background: #dc3545;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                margin: 5px;
-                border-radius: 12px;
-            }
-
-            .header h1 {
-                font-size: 24px;
-            }
-
-            .tab-content {
-                padding: 15px;
-            }
-
-            .section {
-                padding: 15px;
-            }
-
-            .controls {
-                grid-template-columns: 1fr;
-            }
-
-            .summary-stats {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
@@ -389,8 +29,8 @@
                         📤 Choose Excel File (.xlsx, .xls, .csv)
                     </label>
                 </div>
-                <div style="margin-top: 15px;">
-                    <p style="color: #6c757d; font-size: 14px;">
+                <div class="mt-15">
+                    <p class="muted-note">
                         📝 Excel should have columns: <strong>Name</strong>, <strong>Enrollment</strong>, <strong>Roll</strong><br>
                         The first row should contain these headers.
                     </p>
@@ -404,18 +44,18 @@
                     <input type="text" id="enrollment-no" placeholder="Enrollment Number" required>
                     <input type="text" id="roll-no" placeholder="Roll Number" required>
                 </div>
-                <div style="margin-top: 15px;">
+                <div class="mt-15">
                     <button class="btn btn-primary" onclick="addStudent()">➕ Add Student</button>
                 </div>
             </div>
 
             <div class="section">
                 <h3>👥 Students List (<span id="student-count">0</span> students)</h3>
-                <div style="margin-bottom: 15px;">
+                <div class="mb-15">
                     <button class="btn btn-danger" onclick="clearAllStudents()">🗑️ Clear All</button>
                 </div>
                 <div id="students-list" class="student-list">
-                    <div style="text-align: center; padding: 40px; color: #6c757d;">
+                    <div class="empty-state">
                         No students added yet. Import from Excel or add manually.
                     </div>
                 </div>
@@ -424,7 +64,7 @@
 
         <!-- Attendance Tab -->
         <div id="attendance-tab" class="tab-content">
-            <div id="attendance-summary" class="summary-card" style="display: none;">
+            <div id="attendance-summary" class="summary-card hidden">
                 <h4>📊 Class Summary</h4>
                 <div class="summary-stats">
                     <div class="stat">
@@ -450,7 +90,7 @@
                     <button class="btn btn-info" onclick="generateReport()">📊 Generate Report</button>
                 </div>
                 <div id="attendance-list" class="student-list">
-                    <div style="text-align: center; padding: 40px; color: #6c757d;">
+                    <div class="empty-state">
                         Please add students first in the Students tab.
                     </div>
                 </div>
@@ -458,7 +98,7 @@
 
             <div class="section">
                 <h3>📤 Attendance Output</h3>
-                <button class="btn btn-primary" onclick="copyRollNumbers()" style="margin-bottom: 15px;">
+                <button class="btn btn-primary mb-15" onclick="copyRollNumbers()">
                     📋 Copy Roll Numbers for Teacher
                 </button>
                 <div id="output" class="output">
@@ -648,7 +288,7 @@
 
             if (students.length === 0) {
                 container.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: #6c757d;">
+                    <div class="empty-state">
                         No students added yet. Import from Excel or add manually.
                     </div>
                 `;
@@ -672,7 +312,7 @@
             
             if (students.length === 0) {
                 container.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: #6c757d;">
+                    <div class="empty-state">
                         Please add students first in the Students tab.
                     </div>
                 `;
